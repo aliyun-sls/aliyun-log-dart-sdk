@@ -1,9 +1,11 @@
 package com.aliyun.sls.dart;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -29,10 +31,12 @@ public class AliyunLogDartSdkPlugin implements FlutterPlugin, MethodCallHandler 
     private MethodChannel channel;
     private LogProducerConfig logProducerConfig;
     private LogProducerClient logProducerClient;
+    private Context context;
     private static final Handler sHandler = new Handler(Looper.getMainLooper());
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
+        context = flutterPluginBinding.getApplicationContext();
         channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "aliyun_sls/flutter_sdk");
         channel.setMethodCallHandler(this);
     }
@@ -78,6 +82,11 @@ public class AliyunLogDartSdkPlugin implements FlutterPlugin, MethodCallHandler 
         try {
             logProducerConfig = new LogProducerConfig();
             updateLogProducerConfig(call);
+            String error = initPersistent(call);
+            if (!TextUtils.isEmpty(error)) {
+                result.success((error(LogProducerResult.LOG_PRODUCER_INVALID, error)));
+                return;
+            }
 
             logProducerClient = new LogProducerClient(logProducerConfig, (i, s, s1, i1, i2) -> {
                 sHandler.post(() -> channel.invokeMethod("on_send_done", new HashMap<String, Object>() {
@@ -124,12 +133,6 @@ public class AliyunLogDartSdkPlugin implements FlutterPlugin, MethodCallHandler 
         final Integer packetLogCount = optArgument(call, "packetLogCount", null);
         final Integer packetTimeout = optArgument(call, "packetTimeout", null);
         final Integer maxBufferLimit = optArgument(call, "maxBufferLimit", null);
-
-        final Boolean persistent = optArgument(call, "persistent", null);
-        final Boolean persistentForceFlush = optArgument(call, "persistentForceFlush", null);
-        final String persistentFilePath = optArgument(call, "persistentFilePath", null);
-        final Integer persistentMaxFileCount = optArgument(call, "persistentMaxFileCount", null);
-        final Integer persistentMaxLogCount = optArgument(call, "persistentMaxLogCount", null);
 
         // endpoint & ak
         if (null != endpoint) {
@@ -196,25 +199,53 @@ public class AliyunLogDartSdkPlugin implements FlutterPlugin, MethodCallHandler 
             logProducerConfig.setMaxBufferLimit(maxBufferLimit);
         }
 
-        // persistent
-        if (null != persistent && persistent) {
-            logProducerConfig.setPersistent(1);
-            logProducerConfig.setPersistentForceFlush(persistentForceFlush ? 1 : 0);
-            if (null != persistentFilePath) {
-                logProducerConfig.setPersistentFilePath(persistentFilePath);
-            }
-            if (null != persistentMaxFileCount) {
-                logProducerConfig.setPersistentMaxFileCount(persistentMaxFileCount);
-            }
-            if (null != persistentMaxLogCount) {
-                logProducerConfig.setPersistentMaxLogCount(persistentMaxLogCount);
-            }
-        }
-
         // debuggable
         if (null != debuggable && debuggable) {
             logProducerConfig.logProducerDebug();
         }
+    }
+
+    private String initPersistent(MethodCall call) {
+        final Boolean persistent = optArgument(call, "persistent", null);
+        final Boolean persistentForceFlush = optArgument(call, "persistentForceFlush", null);
+        final String persistentFilePath = optArgument(call, "persistentFilePath", null);
+        final Integer persistentMaxFileCount = optArgument(call, "persistentMaxFileCount", null);
+        final Integer persistentMaxFileSize = optArgument(call, "persistentMaxFileSize", null);
+        final Integer persistentMaxLogCount = optArgument(call, "persistentMaxLogCount", null);
+
+        if (null != persistent && persistent) {
+            logProducerConfig.setPersistent(1);
+            logProducerConfig.setPersistentForceFlush(null != persistentForceFlush && persistentForceFlush ? 1 : 0);
+
+            logProducerConfig.setPersistentMaxFileCount(null != persistentMaxFileCount ? persistentMaxFileCount : 10);
+            logProducerConfig.setPersistentMaxLogCount(
+                null != persistentMaxLogCount ? persistentMaxLogCount : 64 * 1024);
+            logProducerConfig.setPersistentMaxFileSize(
+                null != persistentMaxFileSize ? persistentMaxFileSize : 1024 * 1024);
+
+            if (TextUtils.isEmpty(persistentFilePath)) {
+                return "persistent file path must not be null.";
+            }
+
+            String path = setupPersistentFilePath(persistentFilePath);
+            if (null != path) {
+                logProducerConfig.setPersistentFilePath(path);
+            }
+        }
+        return null;
+    }
+
+    private String setupPersistentFilePath(String filePath) {
+        if (null == context) {
+            return null;
+        }
+
+        File path = new File(context.getFilesDir(), filePath);
+        if (!path.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            path.mkdirs();
+        }
+        return new File(path, "dat").getAbsolutePath();
     }
 
     private void destroy(MethodCall call, Result result) {

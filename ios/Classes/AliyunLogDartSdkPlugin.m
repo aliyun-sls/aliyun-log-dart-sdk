@@ -53,6 +53,10 @@
 - (void) initProducer: (FlutterMethodCall *)call result: (FlutterResult) result {
     _logProducerConfig = [[LogProducerConfig alloc] initWithEndpoint:@"" project:@"" logstore:@""];
     [self updateLogProducerConfig:call];
+    NSString *error = [self setupPersistent:call];
+    if (error.length > 0) {
+        return result([self error:error code:LogProducerInvalid]);
+    }
 
     _logProducerClient = [[LogProducerClient alloc] initWithLogProducerConfig:_logProducerConfig callback:on_send_done_function_in_flutter userparams:self];
 
@@ -87,12 +91,6 @@
     int packetLogCount = [AliyunLogArgumentUtils intValue:call key:@"packetLogCount"];
     int packetTimeout = [AliyunLogArgumentUtils intValue:call key:@"packetTimeout"];
     int maxBufferLimit = [AliyunLogArgumentUtils intValue:call key:@"maxBufferLimit"];
-
-    BOOL persistent = [AliyunLogArgumentUtils boolValue:call key:@"persistent"];
-    BOOL persistentForceFlush = [AliyunLogArgumentUtils boolValue:call key:@"persistentForceFlush"];
-    NSString *persistentFilePath = [AliyunLogArgumentUtils stringValue:call key:@"persistentFilePath"];
-    int persistentMaxFileCount = [AliyunLogArgumentUtils intValue:call key:@"persistentMaxFileCount"];
-    int persistentMaxLogCount = [AliyunLogArgumentUtils intValue:call key:@"persistentMaxLogCount"];
 
     if (endpoint.length > 0) {
         [_logProducerConfig setEndpoint:endpoint];
@@ -157,23 +155,49 @@
         [_logProducerConfig SetMaxBufferLimit:maxBufferLimit];
     }
 
-    // persistent
-    if (persistent) {
-        [_logProducerConfig SetPersistent:1];
-        [_logProducerConfig SetPersistentForceFlush:persistentForceFlush ? 1 : 0];
-        [_logProducerConfig SetPersistentFilePath:persistentFilePath];
-        if (persistentMaxFileCount > 0) {
-            [_logProducerConfig SetPersistentMaxFileCount:persistentMaxFileCount];
-        }
-        if (persistentMaxLogCount > 0) {
-            [_logProducerConfig SetPersistentMaxLogCount:persistentMaxLogCount];
-        }
-    }
-
     // debuggable
     if (debuggable) {
         [LogProducerConfig Debug];
     }
+}
+
+- (NSString *) setupPersistent: (FlutterMethodCall *)call {
+    BOOL persistent = [AliyunLogArgumentUtils boolValue:call key:@"persistent"];
+    BOOL persistentForceFlush = [AliyunLogArgumentUtils boolValue:call key:@"persistentForceFlush"];
+    NSString *persistentFilePath = [AliyunLogArgumentUtils stringValue:call key:@"persistentFilePath"];
+    int persistentMaxFileCount = [AliyunLogArgumentUtils intValue:call key:@"persistentMaxFileCount"];
+    int persistentMaxFileSize = [AliyunLogArgumentUtils intValue:call key:@"persistentMaxFileSize"];
+    int persistentMaxLogCount = [AliyunLogArgumentUtils intValue:call key:@"persistentMaxLogCount"];
+    
+    // persistent
+    if (persistent) {
+        if (persistentFilePath.length <= 0) {
+            return @"persistent file path must not be null.";
+        }
+        
+        [_logProducerConfig SetPersistent:1];
+        [_logProducerConfig SetPersistentForceFlush:persistentForceFlush ? 1 : 0];
+        [_logProducerConfig SetPersistentMaxFileCount:persistentMaxFileCount > 0 ? persistentMaxFileCount : 10];
+        [_logProducerConfig SetPersistentMaxFileSize:persistentMaxFileSize > 0 ? persistentMaxFileSize : 1024 * 1024];
+        [_logProducerConfig SetPersistentMaxLogCount:persistentMaxLogCount > 0 ? persistentMaxLogCount : 64 * 1024];
+        
+        NSString *path = [self setupPersistentFilePath:persistentFilePath];
+        [_logProducerConfig SetPersistentFilePath:path];
+    }
+    return nil;
+}
+
+- (NSString *) setupPersistentFilePath: (NSString *)filePath {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *path = [[paths lastObject] stringByAppendingFormat:@"/%@", filePath];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    BOOL existed = [fileManager fileExistsAtPath:path];
+    if (NO == existed) {
+        [fileManager createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+    
+    return [path stringByAppendingString:@"/dat"];
 }
 
 - (void) addLog: (FlutterMethodCall *)call result: (FlutterResult)result {
