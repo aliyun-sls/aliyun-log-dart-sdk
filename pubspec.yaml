@@ -1,7 +1,7 @@
 name: aliyun_log_dart_sdk
 description: Aliyun Log Service for dart & flutter.
-version: 0.0.1
-homepage:
+version: 0.0.1-dev.1
+homepage: https://help.aliyun.com/document_detail/54604.html
 
 environment:
   sdk: '>=2.19.3 <3.0.0'
