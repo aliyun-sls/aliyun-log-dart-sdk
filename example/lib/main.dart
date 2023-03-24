@@ -36,12 +36,47 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void _initProducer() {
+  void _initProducer() async {
+    if (null != _aliyunLogSdk) {
+      print('producer has been inited. please restart app.');
+      return;
+    }
+
     LogProducerConfiguration configuration = LogProducerConfiguration(
         endpoint: 'https://cn-hangzhou.log.aliyuncs.com', project: 'yuanbo-test-1', logstore: 'test');
     configuration.accessKeyId = '';
     configuration.accessKeySecret = '';
-    _aliyunLogSdk = AliyunLogDartSdk(configuration);
+
+    _aliyunLogSdk = AliyunLogDartSdk();
+    LogProducerResult result = await _aliyunLogSdk!.initProducer(configuration);
+    print('init producer: ${result.name}');
+
+    _aliyunLogSdk!.setLogCallback((resultCode, errorMessage, logBytes, compressedBytes) {
+      print('log send result: ${resultCode.name}');
+    });
+  }
+
+  void _initProducerWithPersistent() async {
+    if (null != _aliyunLogSdk) {
+      print('producer has been inited. please restart app.');
+      return;
+    }
+    LogProducerConfiguration configuration = LogProducerConfiguration(
+        endpoint: 'https://cn-hangzhou.log.aliyuncs.com', project: 'yuanbo-test-1', logstore: 'test');
+    configuration.accessKeyId = '';
+    configuration.accessKeySecret = '';
+
+    configuration.persistent = true; // 开启断点续传
+    configuration.persistentFilePath = 'flutter/demo'; // binlog 缓存目录
+    configuration.persistentForceFlush = false; // 关闭强制刷新，建议关闭，开启后会对性能产生一定的影响
+    configuration.persistentMaxFileCount = 10; // 缓存文件数量，默认为 10
+    configuration.persistentMaxFileSize = 1024 * 1024; // 单个缓存文件的大小，默认为 1MB
+    configuration.persistentMaxLogCount = 64 * 1024; // 缓存日志的数量，默认为 64K
+
+    _aliyunLogSdk = AliyunLogDartSdk();
+    LogProducerResult result = await _aliyunLogSdk!.initProducer(configuration);
+    print('init producer: ${result.name}');
+
     _aliyunLogSdk!.setLogCallback((resultCode, errorMessage, logBytes, compressedBytes) {
       print('log send result: ${resultCode.name}');
     });
@@ -116,7 +151,12 @@ class _MyAppState extends State<MyApp> {
     return true;
   }
 
-  void _updateConfiguration() {}
+  void _updateConfiguration() async {
+    LogProducerConfiguration configuration = LogProducerConfiguration();
+    configuration.dropDelayLog = true;
+    configuration.dropUnauthorizedLog = true;
+    await _aliyunLogSdk!.updateConfiguration(configuration);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -131,6 +171,7 @@ class _MyAppState extends State<MyApp> {
           children: [
             _buildConsoleText(),
             _buildButton(color, 'init', _initProducer),
+            _buildButton(color, 'init with persistent', _initProducerWithPersistent),
             _buildButton(color, 'send', _sendLog),
             _buildButton(color, 'set endpoint/project/logstore', _setEndpoint),
             _buildButton(color, 'set accesskey', _setAccessKey),
