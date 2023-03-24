@@ -21,19 +21,16 @@ class LogMethodChannelPlatform extends LogPlatform {
       String? errorMessage = call.arguments['errorMessage'];
       int logBytes = call.arguments['logBytes'];
       int compressedBytes = call.arguments['compressedBytes'];
-      _callback!(LogProducerResult.fromInt(resultCode), errorMessage, logBytes,
-          compressedBytes);
+      _callback!(intToLogProducerResult(resultCode), errorMessage, logBytes, compressedBytes);
     }
   }
 
   @override
-  Future<LogProducerResult> initProducer(
-      Map<String?, Object?> parameter) async {
-    Map<Object?, Object?>? res = await channel
-        .invokeMethod<Map<Object?, Object?>?>("initProducer", parameter);
+  Future<LogProducerResult> initProducer(Map<String?, Object?> parameter) async {
+    Map<Object?, Object?>? res = await channel.invokeMethod<Map<Object?, Object?>?>("initProducer", parameter);
 
     if (null != res) {
-      return LogProducerResult.fromInt(int.parse(res['code'].toString()));
+      return intToLogProducerResult(int.parse(res['code'].toString()));
     }
     return LogProducerResult.invalid;
   }
@@ -60,13 +57,9 @@ class LogMethodChannelPlatform extends LogPlatform {
   }
 
   @override
-  Future<void> setAccessKey(String? accessKeyId, String? accessKeySecret,
-      {String? securityToken}) async {
-    await channel.invokeMethod('setAccessKey', {
-      'accessKeyId': accessKeyId,
-      'accessKeySecret': accessKeySecret,
-      'securityToken': securityToken
-    });
+  Future<void> setAccessKey(String? accessKeyId, String? accessKeySecret, {String? securityToken}) async {
+    await channel.invokeMethod('setAccessKey',
+        {'accessKeyId': accessKeyId, 'accessKeySecret': accessKeySecret, 'securityToken': securityToken});
   }
 
   @override
@@ -94,12 +87,11 @@ class LogMethodChannelPlatform extends LogPlatform {
   @override
   Future<LogProducerResult> addLog(Map<String?, Object?> parameter) async {
     Map res = await channel.invokeMethod('addLog', {'log': parameter});
-    return LogProducerResult.fromInt(res['code']);
+    return intToLogProducerResult(res['code']);
   }
 
   @override
-  Future<void> updateConfiguration(
-      LogProducerConfiguration configuration) async {
+  Future<void> updateConfiguration(LogProducerConfiguration configuration) async {
     await channel.invokeMethod('updateConfiguration', configuration.toMap());
   }
 }

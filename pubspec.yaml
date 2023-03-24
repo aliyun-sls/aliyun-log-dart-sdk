@@ -1,10 +1,10 @@
 name: aliyun_log_dart_sdk
 description: Aliyun Log Service for dart & flutter. You can send your business data to your private SLS Logstore with this sdk.
-version: 0.0.1-dev.2
+version: 0.0.1-dev.3
 homepage: https://help.aliyun.com/document_detail/54604.html
 
 environment:
-  sdk: '>=2.19.3 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
   flutter: ">=2.5.0"
 
 dependencies:
