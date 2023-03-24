@@ -95,7 +95,7 @@ void main() {
   test('updateConfiguration', () async {
     LogProducerConfiguration configuration = LogProducerConfiguration();
     await platform.updateConfiguration(configuration);
-    expect(parameters!.length, 25);
+    expect(parameters!.length, 26);
 
     configuration = LogProducerConfiguration();
     configuration.endpoint = 'https://cn-hangzhou.log.aliyuncs.com';
