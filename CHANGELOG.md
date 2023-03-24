@@ -1,3 +1,6 @@
+## 1.0.0
+* Aliyun Log Service for Dart now ready.
+
 ## 0.0.1-dev.3
 * Downward compatible to Dart 2.12.0
 
