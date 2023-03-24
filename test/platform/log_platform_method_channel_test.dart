@@ -36,7 +36,8 @@ void main() {
   });
 
   test('initProduder', () async {
-    expect(await platform.initProducer({'endpoint': 'test'}), LogProducerResult.ok);
+    expect(await platform.initProducer({'endpoint': 'test'}),
+        LogProducerResult.ok);
   });
 
   test('addLog', () async {
@@ -65,7 +66,8 @@ void main() {
     const accessKeyId = 'id';
     const accessKeySecret = 'secret';
     const securityToken = 'token';
-    await platform.setAccessKey(accessKeyId, accessKeySecret, securityToken: securityToken);
+    await platform.setAccessKey(accessKeyId, accessKeySecret,
+        securityToken: securityToken);
     expect(parameters!['accessKeyId'], accessKeyId);
     expect(parameters!['accessKeySecret'], accessKeySecret);
     expect(parameters!['securityToken'], securityToken);

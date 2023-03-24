@@ -5,7 +5,8 @@ import 'platform/log_platform_interface.dart';
 class AliyunLogDartSdk {
   AliyunLogDartSdk() {}
 
-  Future<LogProducerResult> initProducer(LogProducerConfiguration configuration) async {
+  Future<LogProducerResult> initProducer(
+      LogProducerConfiguration configuration) async {
     var parameter = configuration.toMap();
     return await LogPlatform.instance.initProducer(parameter);
   }
@@ -26,8 +27,10 @@ class AliyunLogDartSdk {
     await LogPlatform.instance.setLogstore(logstore);
   }
 
-  Future<void> setAccessKey(String? accessKeyId, String? accessKeySecret, {String? securityToken}) async {
-    await LogPlatform.instance.setAccessKey(accessKeyId, accessKeySecret, securityToken: securityToken);
+  Future<void> setAccessKey(String? accessKeyId, String? accessKeySecret,
+      {String? securityToken}) async {
+    await LogPlatform.instance.setAccessKey(accessKeyId, accessKeySecret,
+        securityToken: securityToken);
   }
 
   Future<void> setSource(String? soruce) async {
@@ -42,7 +45,8 @@ class AliyunLogDartSdk {
     await LogPlatform.instance.addTag(key, value);
   }
 
-  Future<void> updateConfiguration(LogProducerConfiguration configuration) async {
+  Future<void> updateConfiguration(
+      LogProducerConfiguration configuration) async {
     await LogPlatform.instance.updateConfiguration(configuration);
   }
 

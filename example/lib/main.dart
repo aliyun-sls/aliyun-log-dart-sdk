@@ -43,7 +43,9 @@ class _MyAppState extends State<MyApp> {
     }
 
     LogProducerConfiguration configuration = LogProducerConfiguration(
-        endpoint: 'https://cn-hangzhou.log.aliyuncs.com', project: 'yuanbo-test-1', logstore: 'test');
+        endpoint: 'https://cn-hangzhou.log.aliyuncs.com',
+        project: 'yuanbo-test-1',
+        logstore: 'test');
     configuration.accessKeyId = '';
     configuration.accessKeySecret = '';
 
@@ -51,7 +53,8 @@ class _MyAppState extends State<MyApp> {
     LogProducerResult result = await _aliyunLogSdk!.initProducer(configuration);
     print('init producer: ${result.name}');
 
-    _aliyunLogSdk!.setLogCallback((resultCode, errorMessage, logBytes, compressedBytes) {
+    _aliyunLogSdk!
+        .setLogCallback((resultCode, errorMessage, logBytes, compressedBytes) {
       print('log send result: ${resultCode.name}');
     });
   }
@@ -62,7 +65,9 @@ class _MyAppState extends State<MyApp> {
       return;
     }
     LogProducerConfiguration configuration = LogProducerConfiguration(
-        endpoint: 'https://cn-hangzhou.log.aliyuncs.com', project: 'yuanbo-test-1', logstore: 'test');
+        endpoint: 'https://cn-hangzhou.log.aliyuncs.com',
+        project: 'yuanbo-test-1',
+        logstore: 'test');
     configuration.accessKeyId = '';
     configuration.accessKeySecret = '';
 
@@ -77,7 +82,8 @@ class _MyAppState extends State<MyApp> {
     LogProducerResult result = await _aliyunLogSdk!.initProducer(configuration);
     print('init producer: ${result.name}');
 
-    _aliyunLogSdk!.setLogCallback((resultCode, errorMessage, logBytes, compressedBytes) {
+    _aliyunLogSdk!
+        .setLogCallback((resultCode, errorMessage, logBytes, compressedBytes) {
       print('log send result: ${resultCode.name}');
     });
 
@@ -171,11 +177,13 @@ class _MyAppState extends State<MyApp> {
           children: [
             _buildConsoleText(),
             _buildButton(color, 'init', _initProducer),
-            _buildButton(color, 'init with persistent', _initProducerWithPersistent),
+            _buildButton(
+                color, 'init with persistent', _initProducerWithPersistent),
             _buildButton(color, 'send', _sendLog),
             _buildButton(color, 'set endpoint/project/logstore', _setEndpoint),
             _buildButton(color, 'set accesskey', _setAccessKey),
-            _buildButton(color, 'set source/topic/tag', _setSourceAndTopicAndTag),
+            _buildButton(
+                color, 'set source/topic/tag', _setSourceAndTopicAndTag),
             _buildButton(color, 'update configuration', _updateConfiguration),
             _buildButton(color, 'destroy', _destroy),
           ],
@@ -185,33 +193,36 @@ class _MyAppState extends State<MyApp> {
   }
 
   Widget _buildConsoleText() {
-    return Row(mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.start, children: [
-      Expanded(
-          flex: 1,
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 18),
-            padding: const EdgeInsets.all(6),
-            height: 140,
-            decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.grey,
-                  width: 0.67,
+    return Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Expanded(
+              flex: 1,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 18),
+                padding: const EdgeInsets.all(6),
+                height: 140,
+                decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.grey,
+                      width: 0.67,
+                    ),
+                    color: Colors.black),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: Text(
+                    _consoleText,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        letterSpacing: 2,
+                        wordSpacing: 2,
+                        fontFeatures: [FontFeature.tabularFigures()]),
+                  ),
                 ),
-                color: Colors.black),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: Text(
-                _consoleText,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    letterSpacing: 2,
-                    wordSpacing: 2,
-                    fontFeatures: [FontFeature.tabularFigures()]),
-              ),
-            ),
-          ))
-    ]);
+              ))
+        ]);
   }
 
   Widget _buildButton(Color color, String label, VoidCallback? onPressed) {
@@ -226,14 +237,20 @@ class _MyAppState extends State<MyApp> {
               child: TextButton(
                   onPressed: onPressed,
                   style: ButtonStyle(
-                      shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                      side: MaterialStateProperty.all(BorderSide(color: color, width: 0.67)),
-                      backgroundColor: MaterialStateProperty.all(Colors.transparent),
-                      padding:
-                          MaterialStateProperty.all(const EdgeInsets.only(left: 12, top: 6, right: 12, bottom: 6))),
+                      shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12))),
+                      side: MaterialStateProperty.all(
+                          BorderSide(color: color, width: 0.67)),
+                      backgroundColor:
+                          MaterialStateProperty.all(Colors.transparent),
+                      padding: MaterialStateProperty.all(const EdgeInsets.only(
+                          left: 12, top: 6, right: 12, bottom: 6))),
                   child: Text(
                     label,
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w400, color: color),
+                    style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w400,
+                        color: color),
                   )),
             )),
       ],

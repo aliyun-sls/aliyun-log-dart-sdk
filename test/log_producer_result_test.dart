@@ -15,7 +15,8 @@ void main() {
       expect(LogProducerResult.sendDiscardError, LogProducerResult.fromInt(8));
       expect(LogProducerResult.sendTimeError, LogProducerResult.fromInt(9));
       expect(LogProducerResult.sendExitBuffered, LogProducerResult.fromInt(10));
-      expect(LogProducerResult.parametersInvalid, LogProducerResult.fromInt(11));
+      expect(
+          LogProducerResult.parametersInvalid, LogProducerResult.fromInt(11));
       expect(LogProducerResult.persistentError, LogProducerResult.fromInt(99));
       expect(LogProducerResult.unknown, LogProducerResult.fromInt(-1));
       expect(LogProducerResult.unknown, LogProducerResult.fromInt(33));

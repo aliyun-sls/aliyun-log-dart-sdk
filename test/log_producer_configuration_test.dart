@@ -45,7 +45,8 @@ void main() {
     });
 
     test('constructor-mixed', () async {
-      LogProducerConfiguration configuration = LogProducerConfiguration(endpoint: endpoint, accessKeyId: accesskeyId);
+      LogProducerConfiguration configuration = LogProducerConfiguration(
+          endpoint: endpoint, accessKeyId: accesskeyId);
       expect(endpoint, configuration.endpoint);
       expect(accesskeyId, configuration.accessKeyId);
     });

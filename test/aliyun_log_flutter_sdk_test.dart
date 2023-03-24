@@ -8,7 +8,8 @@ class MockLogPlatform with MockPlatformInterfaceMixin implements LogPlatform {
   Map<String?, Object?>? parameter;
 
   @override
-  Future<LogProducerResult> initProducer(Map<String?, Object?> parameter) async {
+  Future<LogProducerResult> initProducer(
+      Map<String?, Object?> parameter) async {
     this.parameter = parameter;
     return LogProducerResult.ok;
   }
@@ -30,8 +31,13 @@ class MockLogPlatform with MockPlatformInterfaceMixin implements LogPlatform {
   }
 
   @override
-  Future<void> setAccessKey(String? accessKeyId, String? accessKeySecret, {String? securityToken}) async {
-    parameter = {'accessKeyId': accessKeyId, 'accessKeySecret': accessKeySecret, 'securityToekn': securityToken};
+  Future<void> setAccessKey(String? accessKeyId, String? accessKeySecret,
+      {String? securityToken}) async {
+    parameter = {
+      'accessKeyId': accessKeyId,
+      'accessKeySecret': accessKeySecret,
+      'securityToekn': securityToken
+    };
   }
 
   @override
@@ -65,7 +71,8 @@ class MockLogPlatform with MockPlatformInterfaceMixin implements LogPlatform {
   }
 
   @override
-  Future<void> updateConfiguration(LogProducerConfiguration configuration) async {
+  Future<void> updateConfiguration(
+      LogProducerConfiguration configuration) async {
     parameter = configuration.toMap();
   }
 }
@@ -77,7 +84,8 @@ void main() {
       LogPlatform.instance = mockLogPlatform;
 
       const String endpoint = "https://cn-shanghai.log.aliyuncs.com";
-      LogProducerConfiguration configuration = LogProducerConfiguration(endpoint: endpoint);
+      LogProducerConfiguration configuration =
+          LogProducerConfiguration(endpoint: endpoint);
       AliyunLogDartSdk(configuration);
       expect(endpoint, mockLogPlatform.parameter?['endpoint']);
     });
@@ -104,7 +112,8 @@ void main() {
 
       log = {'id': 12323, 'name': 'xiaoming', 'height': 164.5};
       sdk!.addLog(log);
-      expect({'id': 12323, 'name': 'xiaoming', 'height': 164.5}, mockLogPlatform.parameter);
+      expect({'id': 12323, 'name': 'xiaoming', 'height': 164.5},
+          mockLogPlatform.parameter);
     });
 
     test('addTag', () async {
@@ -116,7 +125,8 @@ void main() {
     });
 
     test('setAccessKey', () async {
-      sdk!.setAccessKey('keyxxxxxx', 'secyyyyyyy', securityToken: 'tokendsdsdsdsd');
+      sdk!.setAccessKey('keyxxxxxx', 'secyyyyyyy',
+          securityToken: 'tokendsdsdsdsd');
       expect('keyxxxxxx', mockLogPlatform.parameter?['accessKeyId']);
       expect('secyyyyyyy', mockLogPlatform.parameter?['accessKeySecret']);
       expect('tokendsdsdsdsd', mockLogPlatform.parameter?['securityToekn']);
@@ -124,7 +134,8 @@ void main() {
 
     test('setEndpoint', () async {
       sdk!.setEndpoint('https://cn-guangzhou.log.aliyuncs.com');
-      expect('https://cn-guangzhou.log.aliyuncs.com', mockLogPlatform.parameter?['endpoint']);
+      expect('https://cn-guangzhou.log.aliyuncs.com',
+          mockLogPlatform.parameter?['endpoint']);
     });
 
     test('setProject', () async {
@@ -153,8 +164,8 @@ void main() {
     });
 
     test('updateConfiguration', () async {
-      LogProducerConfiguration configuration =
-          LogProducerConfiguration(endpoint: "https://cn-beijing.log.aliyuncs.com");
+      LogProducerConfiguration configuration = LogProducerConfiguration(
+          endpoint: "https://cn-beijing.log.aliyuncs.com");
       sdk!.updateConfiguration(configuration);
       Map<String?, Object?> expt = configuration.toMap();
       expect(expt, mockLogPlatform.parameter);

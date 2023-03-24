@@ -38,7 +38,12 @@ class LogProducerConfiguration {
   int? persistentMaxLogCount;
 
   LogProducerConfiguration(
-      {this.endpoint, this.project, this.logstore, this.accessKeyId, this.accessKeySecret, this.securityToken});
+      {this.endpoint,
+      this.project,
+      this.logstore,
+      this.accessKeyId,
+      this.accessKeySecret,
+      this.securityToken});
 
   void addTag(String? key, String? value) {
     _tags ??= {};

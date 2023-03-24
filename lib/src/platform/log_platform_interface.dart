@@ -2,8 +2,8 @@ import 'package:aliyun_log_dart_sdk/aliyun_log_dart_sdk.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'log_platform_method_channel.dart';
 
-typedef LogCallback = void Function(
-    LogProducerResult resultCode, String? errorMessage, int logBytes, int compressedBytes);
+typedef LogCallback = void Function(LogProducerResult resultCode,
+    String? errorMessage, int logBytes, int compressedBytes);
 
 abstract class LogPlatform extends PlatformInterface {
   static final Object _token = Object();
@@ -17,7 +17,8 @@ abstract class LogPlatform extends PlatformInterface {
 
   LogPlatform() : super(token: _token);
 
-  Future<LogProducerResult> initProducer(Map<String?, Object?> parameter) async {
+  Future<LogProducerResult> initProducer(
+      Map<String?, Object?> parameter) async {
     throw UnimplementedError('initProducer() has not been implemented.');
   }
 
@@ -37,7 +38,8 @@ abstract class LogPlatform extends PlatformInterface {
     throw UnimplementedError('setLogstore() has not been implemented.');
   }
 
-  Future<void> setAccessKey(String? accessKeyId, String? accessKeySecret, {String? securityToken}) async {
+  Future<void> setAccessKey(String? accessKeyId, String? accessKeySecret,
+      {String? securityToken}) async {
     throw UnimplementedError('setAccessKey() has not been implemented.');
   }
 
@@ -53,7 +55,8 @@ abstract class LogPlatform extends PlatformInterface {
     throw UnimplementedError('addTag() has not been implemented.');
   }
 
-  Future<void> updateConfiguration(LogProducerConfiguration configuration) async {
+  Future<void> updateConfiguration(
+      LogProducerConfiguration configuration) async {
     throw UnimplementedError('updateConfiguration() has not been implemented.');
   }
 
