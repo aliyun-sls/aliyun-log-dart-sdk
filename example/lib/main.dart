@@ -55,6 +55,21 @@ class _MyAppState extends State<MyApp> {
 
     _aliyunLogSdk!
         .setLogCallback((resultCode, errorMessage, logBytes, compressedBytes) {
+      // 参数配置错误，需要更新参数
+      if (LogProducerResult.parametersInvalid == resultCode) {
+        // 如更新 endpoint 配置
+        _aliyunLogSdk!.setEndpoint('your endpoint');
+        // AK 没有配置，或配置错误也会触发parametersInvalid
+        _aliyunLogSdk!.setAccessKey(
+            'your access key id', 'your access key secret',
+            securityToken: 'your token');
+      }
+      // 授权过期，需要更新 AK
+      if (LogProducerResult.sendUnauthorized == resultCode) {
+        _aliyunLogSdk!.setAccessKey(
+            'your access key id', 'your access key secret',
+            securityToken: 'your token');
+      }
       print('log send result: ${resultCode.name}');
     });
   }

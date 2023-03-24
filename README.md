@@ -52,31 +52,31 @@ LogProducerResult code = await _aliyunLogSdk!.addLog({
 
 | 配置参数               | 参数说明                                         | 取值                                                                                                    |
 |------------------------|--------------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| endpoint               | SLS endpoint                                     | 一般在 project 的概览页获取，更多参见：[服务入口](https://help.aliyun.com/document_detail/29008.html)。 |
+| endpoint               | Project 所在地域的入口                           | 一般在 project 的概览页获取，更多参见：[服务入口](https://help.aliyun.com/document_detail/29008.html)。 |
 | project                | 日志服务的资源管理单元                           | [Project介绍](https://help.aliyun.com/document_detail/48873.html)                                       |
 | logstore               | 日志服务中数据的采集、存储、查询单元             | [Logstore介绍](https://help.aliyun.com/document_detail/48874.html)                                      |
 | accesskeyId            | 访问日志服务需要使用 AccessKey 用来进行身份验证  | [AccessKey介绍](https://help.aliyun.com/document_detail/28628.html)                                     |
 | accessKeySecret        | 访问日志服务需要使用 AccessKey 用来进行身份验证  | [AccessKey介绍](https://help.aliyun.com/document_detail/28628.html)                                     |
-| securityToken          | 访问日志服务需要使用 AccessKey 用来进行身份验证  | [AccessKey介绍](https://help.aliyun.com/document_detail/28628.html)                                     |
-| debuggable             | 是否开启调试模式                                 | 默认为 false，表示关闭。 当遇到数据采集问题时建议开启                                                   |
+| securityToken          | 访问日志服务需要使用 AccessKey 用来进行身份验证  | STS 方式获取的 AK 才需要。[AccessKey介绍](https://help.aliyun.com/document_detail/28628.html)           |
+| debuggable             | 是否开启调试模式                                 | 默认为 false，表示关闭。 当遇到数据采集问题时建议开启。                                                 |
 | connectTimeout         | 网络连接超时时间                                 | 默认为 10 秒。一般不建议修改。                                                                          |
 | sendTimeout            | 网络发送超时时间                                 | 默认为 15 秒。一般不建议修改。                                                                          |
 | ntpTimeOffset          | 设备时间与标准时间之差                           | 默认为 0 秒。不建议修改，SDK 已经支持时间自动校正。                                                     |
-| maxLogDelayTime        | 日志时间与本机时间之差                           | 默认为 7 天。超过该值后，会根据 dropDelayLog 进行处理。不建议修改。                                     |
-| dropDelayLog           | 对超过 maxLogDelayTime 日志的处理策略            | 默认为 false，不丢弃。`__time__` 会重置为当前时间                                                       |
+| maxLogDelayTime        | 日志时间与本机时间之差                           | 默认为 7 天。超过该值后，会根据 dropDelayLog 参数进行处理。不建议修改。                                 |
+| dropDelayLog           | 对超过 maxLogDelayTime 日志的处理策略            | 默认为 false，不丢弃。`__time__` 会重置为当前时间。                                                     |
 | dropUnauthorizedLog    | 是否丢弃鉴权失败的日志                           | 默认为 false，不丢弃。                                                                                  |
-| source                 | `__source__` 字段的值                            | 默认为 Android                                                                                          |
+| source                 | `__source__` 字段的值                            | 默认为 Android、iOS。                                                                                   |
 | topic                  | `__topic__` 字段的值                             | 无默认值。                                                                                              |
-| _tags                  | `__tag__:xxx:yyy` 字段的值                       | 无默认值。需要通 `LogProducerConfiguration.addTag()` 方法设置。过                                       |
-| packetLogBytes         | 每个待发送日志包的大小                           | 整数，取值为1~5242880，单位为字节。默认为1024 * 1024                                                    |
-| packetLogCount         | 每个待发送日志包中日志数量的最大值               | 整数，取值为1~4096，默认为1024                                                                          |
-| packetTimeout          | 待发送日志包等待超时时间，超时则会立即发送       | 整数，单位为毫秒，默认为3000                                                                            |
-| persistent             | 是否开启断点续传功能。                           | 默认为 false。建议开启，                                                                                |
+| _tags                  | `__tag__:xxx:yyy` 字段的值                       | 无默认值。需要通过 `LogProducerConfiguration.addTag()` 或 `AliyunLogDartSdk.addTag()` 方法设置。        |
+| packetLogBytes         | 每个待发送日志包的大小                           | 整数，取值为1~5242880，单位为字节。默认为1024 * 1024。                                                  |
+| packetLogCount         | 每个待发送日志包中日志数量的最大值               | 整数，取值为1~4096，默认为1024。                                                                        |
+| packetTimeout          | 待发送日志包等待超时时间，超时则会立即发送       | 整数，单位为毫秒，默认为3000。                                                                          |
+| persistent             | 是否开启断点续传功能。                           | 默认为 false。建议开启。                                                                                |
 | persistentForceFlush   | 是否每次 `addLog` 强制刷新，高可靠性场景建议打开 | 默认为 false。一般不建议打开，对性能会有一定的影响。                                                    |
 | persistentFilePath     | 断点续传 binlog 缓存路径                         | 默认为空字符串。配置的路径需要存在，且**不同 AliyunLogDartSdk 实例对应的路径必须不同**。                |
 | persistentMaxFileCount | 持久化文件滚动个数，建议设置成10                 | 默认为 10。                                                                                             |
 | persistentMaxFileSize  | 每个持久化文件大小                               | 默认为 1 MB。                                                                                           |
-| persistentMaxLogCount  | 最多缓存的日志数，不建议超过1M                   | 默认为65536                                                                                             |
+| persistentMaxLogCount  | 最多缓存的日志数，不建议超过1M                   | 默认为65536。                                                                                           |
 
 ##### 动态配置参数
 SDK 支持对 endpoint、project、logstore、AK 等参数动态更新。
@@ -107,6 +107,7 @@ await _aliyunLogSdk!.addTag('tag2', 'value2');
 LogProducerConfiguration configuration = LogProducerConfiguration();
 configuration.dropDelayLog = true;
 configuration.dropUnauthorizedLog = true;
+// 其他 LogProducerConfiguration 的参数也可通过这种方式设置。
 await _aliyunLogSdk!.updateConfiguration(configuration);
 ```
 **注意：**`AliyunLogDartSdk.updateConfiguration()` 不支持动态配置断点续传相关的参数。
@@ -115,18 +116,26 @@ await _aliyunLogSdk!.updateConfiguration(configuration);
 SDK 支持设置日志发送回调。日志发送成功或失败时，都会产生对应的回调信息。我们可以通过回调信息来观察 SDK 的运行情况，或者更新 SDK 的参数配置。
 
 ```dart
-_aliyunLogSdk!.setLogCallback(
-  (resultCode, errorMessage, logBytes, compressedBytes) {
-    print('log send result: ${resultCode.name}');
+_aliyunLogSdk!.setLogCallback((resultCode, errorMessage, logBytes, compressedBytes) {
+  // 参数配置错误，需要更新参数
+  if (LogProducerResult.parametersInvalid == resultCode) {
+    // 如更新 endpoint 配置
+    _aliyunLogSdk!.setEndpoint('your endpoint');
+    // AK 没有配置，或配置错误也会触发parametersInvalid
+    _aliyunLogSdk!.setAccessKey('your access key id', 'your access key secret', securityToken: 'your token');
   }
-);
+
+  // 授权过期，需要更新 AK
+  if (LogProducerResult.sendUnauthorized == resultCode) {
+    _aliyunLogSdk!.setAccessKey('your access key id', 'your access key secret', securityToken: 'your token');
+  }
+});
 ```
 
 ##### 开启断点续传
-**注意：** 断点续传功能的开启，必须要在初始化 AliyunLogDartSdk 时决定，Sdk 初始化完成后不支持动态修改断点续传相关配置信息。
+**注意：** 断点续传功能的开启时机，必须要在初始化 `AliyunLogDartSdk` 时决定，sdk 初始化完成后不支持动态修改断点续传相关配置信息。
 
 ```dart
-configuration.persistent = true;
 configuration.persistent = true; // 开启断点续传
 configuration.persistentFilePath = 'flutter/demo'; // binlog 缓存目录
 configuration.persistentForceFlush = false; // 关闭强制刷新，建议关闭，开启后会对性能产生一定的影响
