@@ -34,6 +34,7 @@ class LogProducerConfiguration {
   bool? persistentForceFlush;
   String? persistentFilePath;
   int? persistentMaxFileCount;
+  int? persistentMaxFileSize;
   int? persistentMaxLogCount;
 
   LogProducerConfiguration(
@@ -70,6 +71,7 @@ class LogProducerConfiguration {
       "persistentForceFlush": persistentForceFlush,
       "persistentFilePath": persistentFilePath,
       "persistentMaxFileCount": persistentMaxFileCount,
+      "persistentMaxFileSize": persistentMaxFileSize,
       "persistentMaxLogCount": persistentMaxLogCount
     };
   }

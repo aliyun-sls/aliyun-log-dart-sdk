@@ -3,11 +3,11 @@ import 'log_producer_configuration.dart';
 import 'platform/log_platform_interface.dart';
 
 class AliyunLogDartSdk {
-  AliyunLogDartSdk(LogProducerConfiguration configuration) {
-    // instanceId = DateTime.now().microsecondsSinceEpoch;
+  AliyunLogDartSdk() {}
+
+  Future<LogProducerResult> initProducer(LogProducerConfiguration configuration) async {
     var parameter = configuration.toMap();
-    // parameter.putIfAbsent("instanceId", () => instanceId);
-    LogPlatform.instance.initProducer(parameter);
+    return await LogPlatform.instance.initProducer(parameter);
   }
 
   void setLogCallback(LogCallback callback) async {
