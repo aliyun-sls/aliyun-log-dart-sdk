@@ -138,19 +138,19 @@ LogProducerResult result = await _aliyunLogSdk!.initProducer(configuration);
 ```
 
 ##### 错误码说明
-| 错误码            | 说明                           |
-|:------------------|:-------------------------------|
-| ok                | 成功                           |
-| invalid           | SDK 已销毁或无效               |
-| writeError        | 数据写入错误                   |
-| dropError         | 缓存已满                       |
-| sendNetworkError  | 网络错误                       |
-| sendQuotaError    | Project 写 Quota 已满          |
-| sendUnauthorized  | AK 授权过期或无效              |
-| sendServerError   | 服务错误                       |
-| sendDiscardError  | 数据被丢弃                     |
-| sendTimeError     | 与服务器时间不同步             |
-| sendExitBuffered  | SDK 销毁时，缓存数据还没有发出 |
-| parametersInvalid | SDK 初始化参数错误             |
-| persistentError   | 缓存数据写入磁盘失败           |
-| unknown           | 未知错误                       |
+| 错误码            | 说明                           | 解决方法                                                            |
+|:------------------|:-------------------------------|:--------------------------------------------------------------------|
+| ok                | 成功                           |                                                                     |
+| invalid           | SDK 已销毁或无效               | SDK 初始化失败或已销毁（主动调用了destroy()方法）                   |
+| writeError        | 数据写入错误                   | 同 sendQuotaError                                                   |
+| dropError         | 缓存已满                       | 磁盘或内存缓存已满，日志无法写入。                                  |
+| sendNetworkError  | 网络错误                       | 检查网络连接情况                                                    |
+| sendQuotaError    | Project 写 Quota 已满          | Project写入流量已达上限，提工单联系 SLS                             |
+| sendUnauthorized  | AK 授权过期或无效              | AK 过期、无效，或AK权限策略配置不正确                               |
+| sendServerError   | 服务错误                       | 服务故障                                                            |
+| sendDiscardError  | 数据被丢弃                     | SDK 会自动重新发送                                                  |
+| sendTimeError     | 与服务器时间不同步             | 设备时间与服务时间不同步，SDK 会自动修复该问题                      |
+| sendExitBuffered  | SDK 销毁时，缓存数据还没有发出 | 可能会导致数据丢失，建议开启断点续传功能可避免数据丢失              |
+| parametersInvalid | SDK 初始化参数错误             | 一般是 AK 没有配置，或 endpoint、project、logstore 配置不正确导致的 |
+| persistentError   | 缓存数据写入磁盘失败           | 缓存文件路径配置不正确，或缓存文件已经写满，或系统磁盘空间不够导致  |
+| unknown           | 未知错误                       | 不太可能出现，如果出现请提 bug                                      |
