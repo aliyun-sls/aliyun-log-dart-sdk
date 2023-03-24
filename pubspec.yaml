@@ -35,7 +35,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: com.aliyun.sls.aliyun_log_dart_sdk
+        package: com.aliyun.sls.dart
         pluginClass: AliyunLogDartSdkPlugin
       ios:
         pluginClass: AliyunLogDartSdkPlugin

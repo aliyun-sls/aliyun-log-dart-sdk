@@ -33,3 +33,7 @@ android {
         minSdkVersion 16
     }
 }
+
+dependencies {
+    implementation 'com.aliyun.openservices:aliyun-log-android-sdk:2.6.11'
+}
