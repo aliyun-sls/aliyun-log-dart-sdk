@@ -17,6 +17,7 @@ void main() {
       switch (call.method) {
         case 'initProducer':
           rst.putIfAbsent('code', () => 0);
+          rst.putIfAbsent('data', () => {'token': '12345'});
           break;
         case 'addLog':
           rst.putIfAbsent('code', () => 0);
@@ -36,29 +37,31 @@ void main() {
   });
 
   test('initProduder', () async {
-    expect(await platform.initProducer({'endpoint': 'test'}),
-        LogProducerResult.ok);
+    expect(await platform.initProducer({'endpoint': 'test'}), {
+      'code': 0,
+      'data': {'token': '12345'}
+    });
   });
 
   test('addLog', () async {
-    expect(await platform.addLog({'k1': 'v1'}), LogProducerResult.ok);
+    expect(await platform.addLog('', {'k1': 'v1'}), LogProducerResult.ok);
   });
 
   test('setEndpoint', () async {
     const endpoint = 'https://cn-heyuan.log.aliyuncs.com';
-    await platform.setEndpoint(endpoint);
+    await platform.setEndpoint('', endpoint);
     expect(parameters!['endpoint'], endpoint);
   });
 
   test('setProject', () async {
     const project = 'yuanb-test-project1';
-    await platform.setProject(project);
+    await platform.setProject('', project);
     expect(parameters!['project'], project);
   });
 
   test('setLogstore', () async {
     const logstore = 'yuanbo-logstore1';
-    await platform.setLogstore(logstore);
+    await platform.setLogstore('', logstore);
     expect(parameters!['logstore'], logstore);
   });
 
@@ -66,8 +69,7 @@ void main() {
     const accessKeyId = 'id';
     const accessKeySecret = 'secret';
     const securityToken = 'token';
-    await platform.setAccessKey(accessKeyId, accessKeySecret,
-        securityToken: securityToken);
+    await platform.setAccessKey('', accessKeyId, accessKeySecret, securityToken: securityToken);
     expect(parameters!['accessKeyId'], accessKeyId);
     expect(parameters!['accessKeySecret'], accessKeySecret);
     expect(parameters!['securityToken'], securityToken);
@@ -75,35 +77,35 @@ void main() {
 
   test('setSource', () async {
     const source = 'flutter';
-    await platform.setSource(source);
+    await platform.setSource('', source);
     expect(parameters!['source'], source);
   });
 
   test('setTopic', () async {
     const topic = 'topic';
-    await platform.setTopic(topic);
+    await platform.setTopic('', topic);
     expect(parameters!['topic'], topic);
   });
 
   test('addTag', () async {
     const tagKey = 'topic';
     const tagValue = 'value';
-    await platform.addTag(tagKey, tagValue);
+    await platform.addTag('', tagKey, tagValue);
     expect(parameters!['tags'], {tagKey: tagValue});
   });
 
   test('updateConfiguration', () async {
     LogProducerConfiguration configuration = LogProducerConfiguration();
-    await platform.updateConfiguration(configuration);
-    expect(parameters!.length, 26);
+    await platform.updateConfiguration('', configuration);
+    expect(parameters!.length, 27);
 
     configuration = LogProducerConfiguration();
     configuration.endpoint = 'https://cn-hangzhou.log.aliyuncs.com';
-    await platform.updateConfiguration(configuration);
+    await platform.updateConfiguration('', configuration);
     expect(parameters!['endpoint'], 'https://cn-hangzhou.log.aliyuncs.com');
 
     configuration.project = 'ptj';
-    await platform.updateConfiguration(configuration);
+    await platform.updateConfiguration('', configuration);
     expect(parameters!['project'], 'ptj');
   });
 }

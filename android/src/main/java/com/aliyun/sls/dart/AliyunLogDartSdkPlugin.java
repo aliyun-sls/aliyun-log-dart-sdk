@@ -4,11 +4,13 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Pair;
 import androidx.annotation.NonNull;
 import com.aliyun.sls.android.producer.Log;
 import com.aliyun.sls.android.producer.LogProducerClient;
@@ -29,10 +31,12 @@ public class AliyunLogDartSdkPlugin implements FlutterPlugin, MethodCallHandler 
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
     private MethodChannel channel;
-    private LogProducerConfig logProducerConfig;
-    private LogProducerClient logProducerClient;
+    //private LogProducerConfig logProducerConfig;
+    //private LogProducerClient logProducerClient;
     private Context context;
+    private static final Random sRandom = new Random();
     private static final Handler sHandler = new Handler(Looper.getMainLooper());
+    private static final Map<String, Pair<LogProducerConfig, LogProducerClient>> sInstanceHandlers = new HashMap<>();
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
@@ -69,6 +73,8 @@ public class AliyunLogDartSdkPlugin implements FlutterPlugin, MethodCallHandler 
     }
 
     private void updateConfiguration(MethodCall call, Result result) {
+        final LogProducerConfig logProducerConfig = getLogProducerConfigByToken(call);
+
         if (null == logProducerConfig) {
             result.success(error(LogProducerResult.LOG_PRODUCER_INVALID, "LogProducerConfig is null"));
             return;
@@ -80,15 +86,15 @@ public class AliyunLogDartSdkPlugin implements FlutterPlugin, MethodCallHandler 
 
     private void initProducer(MethodCall call, Result result) {
         try {
-            logProducerConfig = new LogProducerConfig();
+            LogProducerConfig logProducerConfig = new LogProducerConfig();
             updateLogProducerConfig(call);
-            String error = initPersistent(call);
+            String error = initPersistent(call, logProducerConfig);
             if (!TextUtils.isEmpty(error)) {
                 result.success((error(LogProducerResult.LOG_PRODUCER_INVALID, error)));
                 return;
             }
 
-            logProducerClient = new LogProducerClient(logProducerConfig, (i, s, s1, i1, i2) -> {
+            LogProducerClient logProducerClient = new LogProducerClient(logProducerConfig, (i, s, s1, i1, i2) -> {
                 sHandler.post(() -> channel.invokeMethod("on_send_done", new HashMap<String, Object>() {
                         {
                             put("code", i);
@@ -99,13 +105,38 @@ public class AliyunLogDartSdkPlugin implements FlutterPlugin, MethodCallHandler 
                     }
                 ));
             });
-            result.success(success());
+            final String token = String.valueOf(sRandom.nextInt(100000));
+            sInstanceHandlers.put(token, new Pair<LogProducerConfig, LogProducerClient>(logProducerConfig, logProducerClient));
+            result.success(success(new HashMap<String, Object>(){
+                {
+                    put("token", token);
+                }
+            }));
         } catch (Throwable e) {
             result.success(error(LogProducerResult.LOG_PRODUCER_INVALID, e.getMessage()));
         }
     }
 
+    private LogProducerConfig getLogProducerConfigByToken(MethodCall call) {
+        final String token = optArgument(call, "token", null);
+        if (TextUtils.isEmpty(token)) {
+            return null;
+        }
+
+        return sInstanceHandlers.get(token).first;
+    }
+
+    private LogProducerClient getLogProducerClientByToken(MethodCall call) {
+        final String token = optArgument(call, "token", null);
+        if (TextUtils.isEmpty(token)) {
+            return null;
+        }
+
+        return sInstanceHandlers.get(token).second;
+    }
+
     private void updateLogProducerConfig(MethodCall call) {
+        final LogProducerConfig logProducerConfig = getLogProducerConfigByToken(call);
         if (null == logProducerConfig) {
             return;
         }
@@ -205,7 +236,7 @@ public class AliyunLogDartSdkPlugin implements FlutterPlugin, MethodCallHandler 
         }
     }
 
-    private String initPersistent(MethodCall call) {
+    private String initPersistent(MethodCall call, LogProducerConfig logProducerConfig) {
         final Boolean persistent = optArgument(call, "persistent", null);
         final Boolean persistentForceFlush = optArgument(call, "persistentForceFlush", null);
         final String persistentFilePath = optArgument(call, "persistentFilePath", null);
@@ -249,6 +280,8 @@ public class AliyunLogDartSdkPlugin implements FlutterPlugin, MethodCallHandler 
     }
 
     private void destroy(MethodCall call, Result result) {
+        LogProducerClient logProducerClient = getLogProducerClientByToken(call);
+
         if (null == logProducerClient) {
             result.success(error(LogProducerResult.LOG_PRODUCER_INVALID, "LogProducerClient is null"));
             return;
@@ -257,10 +290,14 @@ public class AliyunLogDartSdkPlugin implements FlutterPlugin, MethodCallHandler 
         logProducerClient.destroyLogProducer();
         logProducerClient = null;
 
+        sInstanceHandlers.remove(optArgument(call, "token", ""));
+
         result.success(success());
     }
 
     private void addLog(MethodCall call, Result result) {
+        LogProducerClient logProducerClient = getLogProducerClientByToken(call);
+
         if (null == logProducerClient) {
             result.success(error(LogProducerResult.LOG_PRODUCER_INVALID, "LogProducerClient is null"));
             return;
@@ -288,9 +325,16 @@ public class AliyunLogDartSdkPlugin implements FlutterPlugin, MethodCallHandler 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
         channel.setMethodCallHandler(null);
-        if (null != logProducerClient) {
-            logProducerClient.destroyLogProducer();
+        for (Entry<String, Pair<LogProducerConfig, LogProducerClient>> entry : sInstanceHandlers.entrySet()) {
+            if (null != entry.getValue().second) {
+                entry.getValue().second.destroyLogProducer();
+            }
         }
+        sInstanceHandlers.clear();
+
+        //if (null != logProducerClient) {
+        //    logProducerClient.destroyLogProducer();
+        //}
     }
 
     private static <T> T optArgument(MethodCall call, String key, T def) {

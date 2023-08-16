@@ -8,71 +8,67 @@ class MockLogPlatform with MockPlatformInterfaceMixin implements LogPlatform {
   Map<String?, Object?>? parameter;
 
   @override
-  Future<LogProducerResult> initProducer(
-      Map<String?, Object?> parameter) async {
+  Future<Map<Object?, Object?>?> initProducer(Map<String?, Object?> parameter) async {
     this.parameter = parameter;
-    return LogProducerResult.ok;
-  }
-
-  @override
-  Future<LogProducerResult> addLog(Map<String?, Object?> parameter) async {
-    this.parameter = parameter;
-    return LogProducerResult.ok;
-  }
-
-  @override
-  Future<void> addTag(String? key, String? value) async {
-    parameter = {'key': key, 'value': value};
-  }
-
-  @override
-  Future<void> destroy() {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> setAccessKey(String? accessKeyId, String? accessKeySecret,
-      {String? securityToken}) async {
-    parameter = {
-      'accessKeyId': accessKeyId,
-      'accessKeySecret': accessKeySecret,
-      'securityToekn': securityToken
+    return {
+      'code': 200,
+      'data': {'token': '12345'}
     };
   }
 
   @override
-  Future<void> setEndpoint(String? endpoint) async {
-    parameter = {'endpoint': endpoint};
+  Future<LogProducerResult> addLog(String token, Map<String?, Object?> parameter) async {
+    this.parameter = parameter;
+    return LogProducerResult.ok;
   }
 
   @override
-  Future<void> setLogCallback(LogCallback callback) {
+  Future<void> addTag(String token, String? key, String? value) async {
+    parameter = {'key': key, 'value': value};
+  }
+
+  @override
+  Future<void> destroy(String token) {
     throw UnimplementedError();
   }
 
   @override
-  Future<void> setLogstore(String? logstore) async {
+  Future<void> setAccessKey(String token, String? accessKeyId, String? accessKeySecret, {String? securityToken}) async {
+    parameter = {'accessKeyId': accessKeyId, 'accessKeySecret': accessKeySecret, 'securityToekn': securityToken};
+  }
+
+  @override
+  Future<void> setEndpoint(String token, String? endpoint) async {
+    parameter = {'endpoint': endpoint};
+  }
+
+  @override
+  Future<void> setLogCallback(String token, LogCallback callback) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> setLogstore(String token, String? logstore) async {
     parameter = {'logstore': logstore};
   }
 
   @override
-  Future<void> setProject(String? project) async {
+  Future<void> setProject(String token, String? project) async {
     parameter = {'project': project};
   }
 
   @override
-  Future<void> setSource(String? source) async {
+  Future<void> setSource(String token, String? source) async {
     parameter = {'source': source};
   }
 
   @override
-  Future<void> setTopic(String? topic) async {
+  Future<void> setTopic(String token, String? topic) async {
     parameter = {'topic': topic};
   }
 
   @override
-  Future<void> updateConfiguration(
-      LogProducerConfiguration configuration) async {
+  Future<void> updateConfiguration(String token, LogProducerConfiguration configuration) async {
     parameter = configuration.toMap();
   }
 }
@@ -84,8 +80,7 @@ void main() {
       LogPlatform.instance = mockLogPlatform;
 
       const String endpoint = "https://cn-shanghai.log.aliyuncs.com";
-      LogProducerConfiguration configuration =
-          LogProducerConfiguration(endpoint: endpoint);
+      LogProducerConfiguration configuration = LogProducerConfiguration(endpoint: endpoint);
       AliyunLogDartSdk sdk = AliyunLogDartSdk();
       sdk.initProducer(configuration);
       expect(endpoint, mockLogPlatform.parameter?['endpoint']);
@@ -114,8 +109,7 @@ void main() {
 
       log = {'id': 12323, 'name': 'xiaoming', 'height': 164.5};
       sdk!.addLog(log);
-      expect({'id': 12323, 'name': 'xiaoming', 'height': 164.5},
-          mockLogPlatform.parameter);
+      expect({'id': 12323, 'name': 'xiaoming', 'height': 164.5}, mockLogPlatform.parameter);
     });
 
     test('addTag', () async {
@@ -127,8 +121,7 @@ void main() {
     });
 
     test('setAccessKey', () async {
-      sdk!.setAccessKey('keyxxxxxx', 'secyyyyyyy',
-          securityToken: 'tokendsdsdsdsd');
+      sdk!.setAccessKey('keyxxxxxx', 'secyyyyyyy', securityToken: 'tokendsdsdsdsd');
       expect('keyxxxxxx', mockLogPlatform.parameter?['accessKeyId']);
       expect('secyyyyyyy', mockLogPlatform.parameter?['accessKeySecret']);
       expect('tokendsdsdsdsd', mockLogPlatform.parameter?['securityToekn']);
@@ -136,8 +129,7 @@ void main() {
 
     test('setEndpoint', () async {
       sdk!.setEndpoint('https://cn-guangzhou.log.aliyuncs.com');
-      expect('https://cn-guangzhou.log.aliyuncs.com',
-          mockLogPlatform.parameter?['endpoint']);
+      expect('https://cn-guangzhou.log.aliyuncs.com', mockLogPlatform.parameter?['endpoint']);
     });
 
     test('setProject', () async {
@@ -166,8 +158,8 @@ void main() {
     });
 
     test('updateConfiguration', () async {
-      LogProducerConfiguration configuration = LogProducerConfiguration(
-          endpoint: "https://cn-beijing.log.aliyuncs.com");
+      LogProducerConfiguration configuration =
+          LogProducerConfiguration(endpoint: "https://cn-beijing.log.aliyuncs.com");
       sdk!.updateConfiguration(configuration);
       Map<String?, Object?> expt = configuration.toMap();
       expect(expt, mockLogPlatform.parameter);

@@ -26,72 +26,74 @@ class LogMethodChannelPlatform extends LogPlatform {
   }
 
   @override
-  Future<LogProducerResult> initProducer(Map<String?, Object?> parameter) async {
-    Map<Object?, Object?>? res = await channel.invokeMethod<Map<Object?, Object?>?>("initProducer", parameter);
-
-    if (null != res) {
-      return intToLogProducerResult(int.parse(res['code'].toString()));
-    }
-    return LogProducerResult.invalid;
+  Future<Map<Object?, Object?>?> initProducer(Map<String?, Object?> parameter) async {
+    return await channel.invokeMethod<Map<Object?, Object?>?>("initProducer", parameter);
   }
 
   @override
-  Future<void> setLogCallback(LogCallback callback) async {
+  Future<void> setLogCallback(String token, LogCallback callback) async {
     _callback = callback;
     channel.setMethodCallHandler(_handleMessage);
   }
 
   @override
-  Future<void> setEndpoint(String? endpoint) async {
-    await channel.invokeMethod('setEndpoint', {'endpoint': endpoint});
+  Future<void> setEndpoint(String token, String? endpoint) async {
+    await channel.invokeMethod('setEndpoint', {'token': token, 'endpoint': endpoint});
   }
 
   @override
-  Future<void> setProject(String? project) async {
-    await channel.invokeMethod('setProject', {'project': project});
+  Future<void> setProject(String token, String? project) async {
+    await channel.invokeMethod('setProject', {'token': token, 'project': project});
   }
 
   @override
-  Future<void> setLogstore(String? logstore) async {
-    await channel.invokeMethod('setLogstore', {'logstore': logstore});
+  Future<void> setLogstore(String token, String? logstore) async {
+    await channel.invokeMethod('setLogstore', {'token': token, 'logstore': logstore});
   }
 
   @override
-  Future<void> setAccessKey(String? accessKeyId, String? accessKeySecret, {String? securityToken}) async {
-    await channel.invokeMethod('setAccessKey',
-        {'accessKeyId': accessKeyId, 'accessKeySecret': accessKeySecret, 'securityToken': securityToken});
+  Future<void> setAccessKey(String token, String? accessKeyId, String? accessKeySecret, {String? securityToken}) async {
+    await channel.invokeMethod('setAccessKey', {
+      'token': token,
+      'accessKeyId': accessKeyId,
+      'accessKeySecret': accessKeySecret,
+      'securityToken': securityToken
+    });
   }
 
   @override
-  Future<void> setSource(String? source) async {
-    await channel.invokeMethod('setSource', {'source': source});
+  Future<void> setSource(String token, String? source) async {
+    await channel.invokeMethod('setSource', {'token': token, 'source': source});
   }
 
   @override
-  Future<void> setTopic(String? topic) async {
-    await channel.invokeMethod('setTopic', {'topic': topic});
+  Future<void> setTopic(String token, String? topic) async {
+    await channel.invokeMethod('setTopic', {'token': token, 'topic': topic});
   }
 
   @override
-  Future<void> addTag(String? key, String? value) async {
+  Future<void> addTag(String token, String? key, String? value) async {
     await channel.invokeMethod('addTag', {
+      'token': token,
       'tags': {key: value}
     });
   }
 
   @override
-  Future<void> destroy() async {
-    await channel.invokeMethod('destroy');
+  Future<void> destroy(String token) async {
+    await channel.invokeMethod('destroy', {'token': token});
   }
 
   @override
-  Future<LogProducerResult> addLog(Map<String?, Object?> parameter) async {
-    Map res = await channel.invokeMethod('addLog', {'log': parameter});
+  Future<LogProducerResult> addLog(String token, Map<String?, Object?> parameter) async {
+    Map res = await channel.invokeMethod('addLog', {'token': token, 'log': parameter});
     return intToLogProducerResult(res['code']);
   }
 
   @override
-  Future<void> updateConfiguration(LogProducerConfiguration configuration) async {
-    await channel.invokeMethod('updateConfiguration', configuration.toMap());
+  Future<void> updateConfiguration(String token, LogProducerConfiguration configuration) async {
+    Map<String, Object?> arguments = configuration.toMap();
+    arguments.putIfAbsent("token", () => token);
+    await channel.invokeMethod('updateConfiguration', arguments);
   }
 }
