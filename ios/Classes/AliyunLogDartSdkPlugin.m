@@ -2,16 +2,29 @@
 #import "AliyunLogArgumentUtils.h"
 #import "AliyunLogProducer/AliyunLogProducer.h"
 
+
 @interface AliyunLogDartSdkPlugin ()
-@property LogProducerConfig *logProducerConfig;
-@property LogProducerClient *logProducerClient;
+//@property LogProducerConfig *logProducerConfig;
+//@property LogProducerClient *logProducerClient;
+@property NSMutableDictionary<NSString*, NSDictionary<NSString*, NSObject*>*> *instanceHandlers;
 - (void) initProducer: (FlutterMethodCall *)call result: (FlutterResult)result;
 - (void) updateLogProducerConfig: (FlutterMethodCall *)call;
 - (void) addLog: (FlutterMethodCall *)call result: (FlutterResult)result;
 - (void) onLogSendDone: (NSString *)logstore resultCode: (LogProducerResult)resultCode errorMessage: (NSString *)errorMessage logBytes: (NSInteger)logBytes compressedBytes: (NSInteger)compressedBytes;
+- (NSString *) randomToken;
 @end
 
 @implementation AliyunLogDartSdkPlugin
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        _instanceHandlers = [NSMutableDictionary dictionary];
+    }
+    return self;
+}
+
 + (instancetype) initWithChannel: (FlutterMethodChannel *)channel {
     AliyunLogDartSdkPlugin *plugin = [[AliyunLogDartSdkPlugin alloc] init];
     plugin.channel = channel;
@@ -51,19 +64,41 @@
 }
 
 - (void) initProducer: (FlutterMethodCall *)call result: (FlutterResult) result {
-    _logProducerConfig = [[LogProducerConfig alloc] initWithEndpoint:@"" project:@"" logstore:@""];
+    LogProducerConfig *_logProducerConfig = [[LogProducerConfig alloc] initWithEndpoint:@"" project:@"" logstore:@""];
     [self updateLogProducerConfig:call];
     NSString *error = [self setupPersistent:call];
     if (error.length > 0) {
         return result([self error:error code:LogProducerInvalid]);
     }
 
-    _logProducerClient = [[LogProducerClient alloc] initWithLogProducerConfig:_logProducerConfig callback:on_send_done_function_in_flutter userparams:self];
+    LogProducerClient *_logProducerClient = [[LogProducerClient alloc] initWithLogProducerConfig:_logProducerConfig callback:on_send_done_function_in_flutter userparams:self];
 
-    result([self success]);
+    NSString *token = [self randomToken];
+    [_instanceHandlers setObject:@{@"config": _logProducerConfig, @"client": _logProducerClient} forKey:token];
+
+    result([self success: @{@"token": token}]);
+}
+
+- (LogProducerConfig *) getLogProducerConfigByToken: (FlutterMethodCall *)call {
+    NSString *token = [AliyunLogArgumentUtils stringValue:call key:@"token"];
+    if (token.length <= 0) {
+        return nil;
+    }
+
+    return (LogProducerConfig *)[_instanceHandlers objectForKey:token][@"config"];
+}
+
+- (LogProducerClient *) getLogProducerClientByToken: (FlutterMethodCall *)call {
+    NSString *token = [AliyunLogArgumentUtils stringValue:call key:@"token"];
+    if (token.length <= 0) {
+        return nil;
+    }
+
+    return (LogProducerClient *)[_instanceHandlers objectForKey:token][@"client"];
 }
 
 - (void) updateLogProducerConfig: (FlutterMethodCall *)call {
+    LogProducerConfig *_logProducerConfig = [self getLogProducerConfigByToken:call];
     if (nil == _logProducerConfig || nil == call.arguments) {
         return;
     }
@@ -174,6 +209,7 @@
         if (persistentFilePath.length <= 0) {
             return @"persistent file path must not be null.";
         }
+        LogProducerConfig *_logProducerConfig = [self getLogProducerConfigByToken:call];
         
         [_logProducerConfig SetPersistent:1];
         [_logProducerConfig SetPersistentForceFlush:persistentForceFlush ? 1 : 0];
@@ -201,6 +237,7 @@
 }
 
 - (void) addLog: (FlutterMethodCall *)call result: (FlutterResult)result {
+    LogProducerClient *_logProducerClient = [self getLogProducerClientByToken:call];
     if (nil == _logProducerClient || nil == call.arguments) {
         result([self error:@"arguments is null or client is null" code:LogProducerInvalid]);
         return;
@@ -223,6 +260,7 @@
 }
 
 - (void) updateConfiguration: (FlutterMethodCall *)call result: (FlutterResult)result {
+    LogProducerConfig *_logProducerConfig = [self getLogProducerConfigByToken:call];
     if (nil == _logProducerConfig) {
         result([self error:@"LogProducerConfig is null" code:LogProducerInvalid]);
         return;
@@ -233,6 +271,7 @@
 }
 
 - (void) destroy: (FlutterMethodCall *)call result: (FlutterResult)result {
+    LogProducerClient *_logProducerClient = [self getLogProducerClientByToken:call];
     if (nil == _logProducerClient) {
         result([self error:@"LogProducerConfig is null" code:LogProducerInvalid]);
         return;
@@ -277,6 +316,13 @@
         @"compressedBytes": @(compressedBytes)
     }
     ];
+}
+
+- (NSString *) randomToken {
+    NSUInteger min = 100000;
+    NSUInteger max = 999999;
+    NSUInteger randomNumber = arc4random_uniform((uint32_t)(max - min + 1)) + min;
+    return [NSString stringWithFormat:@"%lu", randomNumber];
 }
 
 void on_send_done_function_in_flutter(const char * config_name, log_producer_result result, size_t log_bytes, size_t compressed_bytes, const char * req_id, const char * error_message, const unsigned char * raw_buffer, void *user_param) {
