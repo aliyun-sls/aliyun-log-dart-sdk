@@ -1,3 +1,6 @@
+## 1.1.0
+* support multi-instance
+
 ## 1.0.0
 * Aliyun Log Service for Dart now ready.
 
