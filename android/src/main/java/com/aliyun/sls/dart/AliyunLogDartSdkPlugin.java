@@ -80,14 +80,14 @@ public class AliyunLogDartSdkPlugin implements FlutterPlugin, MethodCallHandler 
             return;
         }
 
-        updateLogProducerConfig(call);
+        updateLogProducerConfig(call, null);
         result.success(success());
     }
 
     private void initProducer(MethodCall call, Result result) {
         try {
             LogProducerConfig logProducerConfig = new LogProducerConfig();
-            updateLogProducerConfig(call);
+            updateLogProducerConfig(call, logProducerConfig);
             String error = initPersistent(call, logProducerConfig);
             if (!TextUtils.isEmpty(error)) {
                 result.success((error(LogProducerResult.LOG_PRODUCER_INVALID, error)));
@@ -135,8 +135,11 @@ public class AliyunLogDartSdkPlugin implements FlutterPlugin, MethodCallHandler 
         return sInstanceHandlers.get(token).second;
     }
 
-    private void updateLogProducerConfig(MethodCall call) {
-        final LogProducerConfig logProducerConfig = getLogProducerConfigByToken(call);
+    private void updateLogProducerConfig(MethodCall call, LogProducerConfig logProducerConfig) {
+        if (null == logProducerConfig) {
+            logProducerConfig = getLogProducerConfigByToken(call);
+        }
+
         if (null == logProducerConfig) {
             return;
         }
