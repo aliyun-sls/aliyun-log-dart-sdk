@@ -8,7 +8,7 @@
 //@property LogProducerClient *logProducerClient;
 @property NSMutableDictionary<NSString*, NSDictionary<NSString*, NSObject*>*> *instanceHandlers;
 - (void) initProducer: (FlutterMethodCall *)call result: (FlutterResult)result;
-- (void) updateLogProducerConfig: (FlutterMethodCall *)call;
+- (void) updateLogProducerConfig: (FlutterMethodCall *)call config: (LogProducerConfig *)config;
 - (void) addLog: (FlutterMethodCall *)call result: (FlutterResult)result;
 - (void) onLogSendDone: (NSString *)logstore resultCode: (LogProducerResult)resultCode errorMessage: (NSString *)errorMessage logBytes: (NSInteger)logBytes compressedBytes: (NSInteger)compressedBytes;
 - (NSString *) randomToken;
@@ -65,7 +65,7 @@
 
 - (void) initProducer: (FlutterMethodCall *)call result: (FlutterResult) result {
     LogProducerConfig *_logProducerConfig = [[LogProducerConfig alloc] initWithEndpoint:@"" project:@"" logstore:@""];
-    [self updateLogProducerConfig:call];
+    [self updateLogProducerConfig:call config:_logProducerConfig];
     NSString *error = [self setupPersistent:call];
     if (error.length > 0) {
         return result([self error:error code:LogProducerInvalid]);
@@ -97,8 +97,12 @@
     return (LogProducerClient *)[_instanceHandlers objectForKey:token][@"client"];
 }
 
-- (void) updateLogProducerConfig: (FlutterMethodCall *)call {
-    LogProducerConfig *_logProducerConfig = [self getLogProducerConfigByToken:call];
+- (void) updateLogProducerConfig: (FlutterMethodCall *)call config: (LogProducerConfig *)config {
+    LogProducerConfig *_logProducerConfig = config;
+    if (nil == _logProducerConfig) {
+        _logProducerConfig = [self getLogProducerConfigByToken:call];
+    }
+    
     if (nil == _logProducerConfig || nil == call.arguments) {
         return;
     }
@@ -266,7 +270,7 @@
         return;
     }
 
-    [self updateLogProducerConfig:call];
+    [self updateLogProducerConfig:call config:_logProducerConfig];
     result([self success]);
 }
 
