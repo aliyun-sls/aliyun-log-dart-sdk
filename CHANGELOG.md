@@ -1,3 +1,6 @@
+## 1.1.1
+* fix parameters error
+
 ## 1.1.0
 * support multi-instance
 
